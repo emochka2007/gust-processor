@@ -11,3 +11,5 @@ int bin_to_int(char bin[]);
 void mult_two_bin(char bin1[], char bin2[], char res[]);
 
 void subtract_two_bin(char *a, char *b, char diff[]);
+
+char* multiply(char*, char*);

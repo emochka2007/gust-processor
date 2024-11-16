@@ -5,33 +5,33 @@
 #include "../include/math.h"
 #include "../include/helper.h"
 
+// 00000011
+// 00000010
+// --------
+//     0000
+//    0011
+// --- 
+// 00000110
+
+
+// 00000000
+// 00000000
+// 00000000
+// 00000000
+// 00000010
+// 00000100
+//      110
+
+// 00000010
+
+
 void mult_two_bin(char bin1[], char bin2[], char res[]) {
     assert(strlen(bin1) == strlen(bin2));
-    char summary[INSTRUCTION_LENGTH];
-    fill_with_zeros(summary, INSTRUCTION_LENGTH-1);
-
-    char expanded_bin1[INSTRUCTION_LENGTH];
-    add_prefix_zeros(bin1, expanded_bin1, INSTRUCTION_LENGTH - strlen(bin2));
-    for (unsigned long i = 0; i < strlen(bin2); i++) {
-        printf("summary: %s\n", summary);
-        char mult_res[INSTRUCTION_LENGTH];
-        fill_with_zeros(mult_res, INSTRUCTION_LENGTH - 1);
-        printf("mul: %s\n", mult_res);
-        int current_digit = bin2[strlen(bin2) - 1 - i] - '0';
-        printf("Current digit: %d\n", current_digit);
-        printf("expanded bin digit: %s\n", expanded_bin1);
-
-        mult_bin_by_digit(expanded_bin1, current_digit, mult_res);
-        left_shift_bin(mult_res, i);
-        printf("summary: %s\n", summary);
-        printf("mul: %s\n", mult_res);
-//        sum_two_bin(mult_res, sum, sum);
+    for (int i=0; i<strlen(bin2); i++){
+        char temp[] = "";
+        mult_bin_by_digit(bin1, bin2[i] - '0', temp);
+        printf("%s", temp);
     }
-//    unsigned long sum_len = strlen(sum);
-//    unsigned long res_len = strlen(res);
-//    printf("Length of sum: %d\n", sum_len);
-//    printf("Length of result array: %d\n", res_len);
-//    copy_str(sum, res);
 }
 
 void mult_bin_by_digit(char mul[], int value, char res[]) {
@@ -133,4 +133,8 @@ void subtract_two_bin(char *a, char *b, char diff[]) {
         diff[i] = sub + '0';
     }
     diff[a_len] = '\0';
+}
+
+char* multiply(char* left, char* right) {
+
 }
