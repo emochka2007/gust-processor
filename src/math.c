@@ -5,32 +5,19 @@
 #include "../include/math.h"
 #include "../include/helper.h"
 
-// 00000011
-// 00000010
-// --------
-//     0000
-//    0011
-// --- 
-// 00000110
-
-
-// 00000000
-// 00000000
-// 00000000
-// 00000000
-// 00000010
-// 00000100
-//      110
-
-// 00000010
-
-
+//     17
+//     15
+//     85
+//    17
+//    255
 void mult_two_bin(char bin1[], char bin2[], char res[]) {
     assert(strlen(bin1) == strlen(bin2));
+    char temp[strlen(bin2)];
+    fill_with_zeros(temp, strlen(bin2));
     for (int i=0; i<strlen(bin2); i++){
-        char temp[] = "";
         mult_bin_by_digit(bin1, bin2[i] - '0', temp);
-        printf("%s", temp);
+        left_shift_bin(temp, strlen(bin2) - i - 1);
+        sum_two_bin(res, temp, res);
     }
 }
 
@@ -67,6 +54,7 @@ int to_power(int num, int power) {
 void int_to_bin(int num, int len, char res[]) {
     // 10 -> 10 % 2 -> 5%2->2%2->1%2=1
     //       0-1-0-1 (1010)
+    fill_with_zeros(res, len);
     for (int i = len - 1; i >= 0 && num > 0; i--) {
         char bin = num % 2 + '0';
         num = num / 2;
@@ -108,6 +96,9 @@ void sum_two_bin(char *a, char *b, char sum[]) {
     }
     sum[a_len] = '\0';
 }
+void twos_complement_bin() {
+    
+}
 
 void subtract_two_bin(char *a, char *b, char diff[]) {
     unsigned long a_len = strlen(a);
@@ -133,8 +124,4 @@ void subtract_two_bin(char *a, char *b, char diff[]) {
         diff[i] = sub + '0';
     }
     diff[a_len] = '\0';
-}
-
-char* multiply(char* left, char* right) {
-
 }

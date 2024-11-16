@@ -169,11 +169,17 @@ void make_inst(char mnemo_command[], char mnemo_mode[], int num, char bin_str[IN
 }
 
 int main(void) {
-    char left[] = "0011";
-    char right[] = "0010";
-    char res[3] = "0000"; //0110
-     mult_two_bin(left, right, res);
-    printf("%s\n", res);
+    char left[INSTRUCTION_LENGTH];
+    char right[INSTRUCTION_LENGTH];
+    int_to_bin(36, INSTRUCTION_LENGTH - 1, right);
+    printf("%s right\n", right);
+    int_to_bin(36, INSTRUCTION_LENGTH - 1, left);
+    printf("%s left\n", left);
+     char res[INSTRUCTION_LENGTH];
+     fill_with_zeros(res, INSTRUCTION_LENGTH - 1);
+    mult_two_bin(left, right, res);
+     printf("%s res\n", res);
+    // printf("%s\n", res);
     // main_loop();
     return 0;
 }
