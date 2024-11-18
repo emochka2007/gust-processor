@@ -175,9 +175,12 @@ int main(void) {
     printf("%s right\n", right);
     int_to_bin(36, INSTRUCTION_LENGTH - 1, left);
     printf("%s left\n", left);
-     char res[INSTRUCTION_LENGTH];
-     fill_with_zeros(res, INSTRUCTION_LENGTH - 1);
-    mult_two_bin(left, right, res);
+     char res[8];
+     fill_with_zeros(res, 7);
+     //0 .. 4,294,967,295 000000000000000
+     //-2,147,483,648 to 2,147,483,647
+     char bin[8] = "0000101";
+    twos_complement(bin, res);
      printf("%s res\n", res);
     // printf("%s\n", res);
     // main_loop();

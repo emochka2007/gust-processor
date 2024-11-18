@@ -125,3 +125,59 @@ void subtract_two_bin(char *a, char *b, char diff[]) {
     }
     diff[a_len] = '\0';
 }
+void twos_complement(char from[], char inverted[]) {
+    unsigned long from_len = strlen(from);
+    unsigned long inverted_len = strlen(inverted);
+    if (from_len != inverted_len) {
+        printf("Error in twos_complement, diff in lengths\n");
+        abort();
+    }
+    for (unsigned long i = 0; i < strlen(from); i++) {
+        if (from[i] == '0') {
+            inverted[i] = '1';
+        } else if (from[i] == '1') {
+            inverted[i] = '0';
+        } else {
+            printf("Error in twos_complement, from[i] not eq to 1 or 0\n");
+            abort();
+        }
+    }
+    increment_bin(inverted);
+}
+
+void increment_bin(char bin[]) {
+    char dig[strlen(bin) + 1];
+    for (unsigned long i = 0; i < strlen(bin); i++) {
+        dig[i] = '0';
+        if (i == strlen(bin) - 1) {
+            dig[i] = '1';
+        }
+    }
+    dig[strlen(bin)] = '\0';
+    sum_two_bin(bin, dig, bin);
+}
+
+// SUBTRACTION
+// The Complement Method
+void sub_complement(char from[], char to[], char res[]) {
+    twos_complement(to, res);
+    sum_two_bin(from, res, res);
+}
+//TODO fix
+// void sub_and_print_bin(char from[], char to[], char res[]) {
+//     printf("%s FROM\n", from);
+//     printf("%s to\n", to);
+//     sub_complement(from, to, res);
+//     signed char sign = res[0];
+//     printf("%s res\n", res);
+//     if (sign == '1') {
+//         char negative_res[strlen(res)];
+//         fill_with_zeros(negative_res, strlen(res));
+//         twos_complement(res, negative_res);
+//         printf("-%d line:%d\n", bin_to_int_with_sign(negative_res), __LINE__);
+//     } else if (sign == '0') {
+//         printf("%d line:%d\n", bin_to_int(res), __LINE__);
+//     } else {
+//         abort();
+//     }
+// }
