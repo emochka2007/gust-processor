@@ -18,7 +18,6 @@ void get_bits_from_instruction(int start, int end, char result[]) {
 void get_value_from_address(char bin_addr[ADDRESS_LENGTH], char value[INSTRUCTION_LENGTH - 1]) {
     int index = bin_to_int(bin_addr);
     if (index >= MEMORY_LENGTH) {
-
         fprintf(stderr, "Index out of range\n");
         abort();
     }
@@ -31,21 +30,34 @@ void address_mode(char mode[ADDRESS_MODE_LENGTH]) {
     store_address(MAR);
     if (strcmp(mode, DIRECT_MODE) == 0) {
     } else if (strcmp(mode, IMMEDIATE_MODE) == 0) {
-
+        int is_negative = 0;
+        if (MAR[0] == '1') {
+            is_negative = 1;
+            MAR[0] = '0';
+        }
         copy_diff_len_str(MAR, MBR, 16 - 10);
+        if (is_negative) {
+            MBR[0] = '1';
+        }
     } else {
         fprintf(stderr, "Mode not found\n");
         abort();
     }
 }
 
-int valid_zero_value(char value[]) {
+int is_zero(char value[]) {
+    printf("%s - value \n", value);
+    printf("%d \n", bin_to_int(value));
     for (unsigned long i = 0; i < strlen(value); i++) {
         if (value[i] != '0') {
             return 0;
         }
     }
     return 1;
+}
+
+int is_negative(char value[0]) {
+    return value[0] == '0';
 }
 
 void instruction_steps(char inst[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH]) {
@@ -63,7 +75,8 @@ void instruction_steps(char inst[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH]
         if (strcmp(mode, IMMEDIATE_MODE) != 0) {
             get_value_from_address(MAR, MBR);
         }
-        subtract_two_bin(AC, MBR, AC);
+        // subtract_two_bin(AC, MBR, AC);
+        sub_complement(AC, MBR, AC);
     } else if (strcmp(inst, MUL) == 0) {
         if (strcmp(mode, IMMEDIATE_MODE) != 0) {
             get_value_from_address(MAR, MBR);
@@ -80,13 +93,20 @@ void instruction_steps(char inst[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH]
     } else if (strcmp(inst, BR) == 0) {
         copy_str(MAR, PC);
     } else if (strcmp(inst, BREQ) == 0) {
-        if (valid_zero_value(AC)) {
+        if (is_zero(AC)) {
+            copy_str(MAR, PC);
+        }
+    } else if (strcmp(inst, BRGE)) {
+        if (!is_negative(AC)) {
+            copy_str(MAR, PC);
+        }
+    } else if (strcmp(inst, BRLT)) {
+        if (is_negative(AC)) {
             copy_str(MAR, PC);
         }
     } else if (strcmp(inst, HALT) == 0) {
         is_halt = 1;
     }
-    // BRGE & BRLT not implemented
 }
 
 void instruction_cycle(void) {
@@ -99,13 +119,15 @@ void instruction_cycle(void) {
         store_address_mode(mode);
         address_mode(mode);
 
+        // print_each_register();
         sum_two_bin(PC, "0000000001", PC);
 
         // Perform the operation
         char operation[COMMAND_LENGTH] = "0000";
         store_command(operation);
+        // print_each_register();
         instruction_steps(operation, mode);
-//        print_instruction();
+        // print_instruction();
         max_iter++;
     }
 }
@@ -117,28 +139,17 @@ void main_loop(void) {
         }
         memory[i][INSTRUCTION_LENGTH - 1] = '\0';
     }
-    // INSTRUCTION CYCLE
-    // LOAD =42 0001010000101010
-//    char memory_cell[INSTRUCTION_LENGTH] = "0001010000101010";
-//    copy_str(memory_cell, memory[0]);
-//    // 3
-//    // add direct 4
-//    char add_memory_cell[INSTRUCTION_LENGTH] = "1000000000000100";
-//    copy_str(add_memory_cell, memory[1]);
-//    char add_int[ADDRESS_LENGTH] = "0000000011";
-//    copy_diff_len_str(add_int, memory[4], INSTRUCTION_LENGTH - ADDRESS_LENGTH);
-    char res[INSTRUCTION_LENGTH] = "0000000000000000";
-    make_inst("LOAD", "=", 42, res);
-//    printf("memory[0] %s\n", memory[0]);
-//    printf("res %s\n", res);
+    char res[INSTRUCTION_LENGTH];
+    fill_with_zeros(res, INSTRUCTION_LENGTH - 1);
+
+    make_inst("LOAD", "=", -5, res);
     copy_str(res, memory[0]);
-    make_inst("SUB", "=", 1, res);
+    make_inst("SUB", "=", 10, res);
     copy_str(res, memory[1]);
-    make_inst("BREQ", " ", 4, res);
-    copy_str(res, memory[2]);
-    make_inst("BR", " ", 1, res);
-    copy_str(res, memory[3]);
-//    printf("%s res\n", res);
+    // make_inst("BREQ", " ", 4, res);
+    // copy_str(res, memory[2]);
+    // make_inst("BR", " ", 1, res);
+    // copy_str(res, memory[3]);
     instruction_cycle();
 }
 
@@ -157,6 +168,7 @@ void make_inst(char mnemo_command[], char mnemo_mode[], int num, char bin_str[IN
     char *mode = BIN_MODES[mode_index];
     char bin_int[ADDRESS_LENGTH] = "0000000000";
     int_to_bin(num, ADDRESS_LENGTH - 1, bin_int);
+    printf("bin_int %s\n", bin_int);
     for (int i = 0; i < 4; i++) {
         bin_str[i] = command[i];
     }
@@ -169,20 +181,15 @@ void make_inst(char mnemo_command[], char mnemo_mode[], int num, char bin_str[IN
 }
 
 int main(void) {
-    char left[INSTRUCTION_LENGTH];
-    char right[INSTRUCTION_LENGTH];
-    int_to_bin(36, INSTRUCTION_LENGTH - 1, right);
-    printf("%s right\n", right);
-    int_to_bin(36, INSTRUCTION_LENGTH - 1, left);
-    printf("%s left\n", left);
-     char res[8];
-     fill_with_zeros(res, 7);
-     //0 .. 4,294,967,295 000000000000000
-     //-2,147,483,648 to 2,147,483,647
-     char bin[8] = "0000101";
-    twos_complement(bin, res);
-     printf("%s res\n", res);
-    // printf("%s\n", res);
-    // main_loop();
+    // char left[INSTRUCTION_LENGTH];
+    // char right[INSTRUCTION_LENGTH];
+    // int_to_bin(-36, INSTRUCTION_LENGTH - 1, right);
+    // printf("%s right\n", right);
+    // int_to_bin(36, INSTRUCTION_LENGTH - 1, left);
+    // printf("%s left\n", left);
+    //0000000000110011
+    main_loop();
+    printf("AC %s\n", AC);
+    printf("AC %d\n", bin_to_int(AC));
     return 0;
 }

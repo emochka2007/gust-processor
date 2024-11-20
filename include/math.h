@@ -14,3 +14,4 @@ void subtract_two_bin(char *a, char *b, char diff[]);
 
 void twos_complement(char from[], char inverted[]);
 void increment_bin(char bin[]);
+void sub_complement(char from[], char to[], char from_res[]);
