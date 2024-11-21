@@ -46,8 +46,8 @@ void address_mode(char mode[ADDRESS_MODE_LENGTH]) {
 }
 
 int is_zero(char value[]) {
-    printf("%s - value \n", value);
-    printf("%d \n", bin_to_int(value));
+    // printf("%s - value \n", value);
+    // printf("%d \n", bin_to_int(value));
     for (unsigned long i = 0; i < strlen(value); i++) {
         if (value[i] != '0') {
             return 0;
@@ -56,7 +56,7 @@ int is_zero(char value[]) {
     return 1;
 }
 
-int is_negative(char value[0]) {
+int is_negative(char value[]) {
     return value[0] == '0';
 }
 
@@ -75,7 +75,6 @@ void instruction_steps(char inst[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH]
         if (strcmp(mode, IMMEDIATE_MODE) != 0) {
             get_value_from_address(MAR, MBR);
         }
-        // subtract_two_bin(AC, MBR, AC);
         sub_complement(AC, MBR, AC);
     } else if (strcmp(inst, MUL) == 0) {
         if (strcmp(mode, IMMEDIATE_MODE) != 0) {
@@ -96,11 +95,11 @@ void instruction_steps(char inst[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH]
         if (is_zero(AC)) {
             copy_str(MAR, PC);
         }
-    } else if (strcmp(inst, BRGE)) {
+    } else if (strcmp(inst, BRGE) == 0) {
         if (!is_negative(AC)) {
             copy_str(MAR, PC);
         }
-    } else if (strcmp(inst, BRLT)) {
+    } else if (strcmp(inst, BRLT) == 0) {
         if (is_negative(AC)) {
             copy_str(MAR, PC);
         }
@@ -144,7 +143,8 @@ void main_loop(void) {
 
     make_inst("LOAD", "=", -5, res);
     copy_str(res, memory[0]);
-    make_inst("SUB", "=", 10, res);
+    // make_inst("SUB", "=", 10, res);
+    make_inst("MUL", "=", 10, res);
     copy_str(res, memory[1]);
     // make_inst("BREQ", " ", 4, res);
     // copy_str(res, memory[2]);
@@ -168,7 +168,6 @@ void make_inst(char mnemo_command[], char mnemo_mode[], int num, char bin_str[IN
     char *mode = BIN_MODES[mode_index];
     char bin_int[ADDRESS_LENGTH] = "0000000000";
     int_to_bin(num, ADDRESS_LENGTH - 1, bin_int);
-    printf("bin_int %s\n", bin_int);
     for (int i = 0; i < 4; i++) {
         bin_str[i] = command[i];
     }
@@ -184,7 +183,9 @@ int main(void) {
     // char left[INSTRUCTION_LENGTH];
     // char right[INSTRUCTION_LENGTH];
     // int_to_bin(-36, INSTRUCTION_LENGTH - 1, right);
+    // int res = bin_to_int(right);
     // printf("%s right\n", right);
+    // printf("%d res\n", res);
     // int_to_bin(36, INSTRUCTION_LENGTH - 1, left);
     // printf("%s left\n", left);
     //0000000000110011
