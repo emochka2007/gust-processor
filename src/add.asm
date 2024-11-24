@@ -1,13 +1,11 @@
-0: LOAD =42
-1: ADD 3
-2: HALT
-3: 5
+LOAD =42
+ADD 3
+HALT
 
 
 
-0: LOAD =42
-1: SUB =1
-2: BREQ 4
-3: BR 1
-4: 
-5:
+LOAD =42
+SUB =1
+BREQ 4
+BR 1
+ 

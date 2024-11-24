@@ -205,6 +205,6 @@ void sub_complement(char from[], char to[], char from_res[]) {
     printf("%s Passing from \n", from);
     sum_two_bin(from, res_complement, from_res);
     printf("%s res 3\n", from_res);
-    // printf("AC %s\n", AC);
-    // printf("AC %d\n", bin_to_int(AC));
+    printf("AC %s\n", AC);
+    printf("AC %d\n", bin_to_int(AC));
 }
