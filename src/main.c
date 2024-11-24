@@ -118,7 +118,7 @@ void instruction_cycle(void) {
         store_address_mode(mode);
         address_mode(mode);
 
-        // print_each_register();
+        print_each_register();
         sum_two_bin(PC, "0000000001", PC);
 
         // Perform the operation

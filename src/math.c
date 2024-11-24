@@ -249,4 +249,7 @@ void sub_complement(char from[], char to[], char from_res[])
     twos_complement(to, res_complement);
      printf("%s to \n", to);
     sum_two_bin(from, res_complement, from_res);
+    printf("%s res 3\n", from_res);
+    // printf("AC %s\n", AC);
+    // printf("AC %d\n", bin_to_int(AC));
 }
