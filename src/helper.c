@@ -14,6 +14,8 @@ void fill_with_zeros(char *bin, unsigned long len) {
 }
 
 void copy_str(char from[], char to[]) {
+    printf("from %d\n", strlen(from));
+    printf("to %d\n", strlen(to));
     assert(strlen(from) == strlen(to));
     for (unsigned long i = 0; i < strlen(from); i++) {
         to[i] = from[i];
