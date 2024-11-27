@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 void fill_with_zeros(char *bin, unsigned long len) {
-
+    printf("len - %d\n", len);
     for (unsigned long i = 0; i < len; i++) {
         bin[i] = '0';
     }
@@ -53,10 +53,3 @@ void copy_diff_len_str(char from[], char to[], unsigned long diff) {
     }
 }
 
-void add_prefix_zeros(char bin[], char to[], int prefix_len) {
-    fill_with_zeros(to, INSTRUCTION_LENGTH);
-    assert(strlen(to) == strlen(bin) + prefix_len);
-    for (unsigned long i = 0; i < strlen(bin); i++) {
-        to[prefix_len + i] = bin[i];
-    }
-}

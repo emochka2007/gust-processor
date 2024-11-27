@@ -40,18 +40,6 @@ void address_mode(char mode[ADDRESS_MODE_LENGTH])
     else if (strcmp(mode, IMMEDIATE_MODE) == 0)
     {
         copy_diff_len_str(MAR, MBR, 16 - 10);
-        // todo incorrect negative numbers handling here
-        // maybe solution is to copy the first bit [16 - 10] times from left side
-        // int is_negative = 0;
-        // if (MAR[0] == '1')
-        // {
-        //     is_negative = 1;
-        //     MAR[0] = '0';
-        // }
-        // if (is_negative)
-        // {
-        //     MBR[0] = '1';
-        // }
     }
     else
     {
@@ -201,11 +189,10 @@ void main_loop(void)
     // make_inst("SUB", "=", 10, res);
     // copy_str(res, memory[1]);
 
-    store_bin_int(-5, 10);
-    store_bin_int(10, 20);
+    store_bin_int(-2, 10);
+    store_bin_int(-3, 20);
     make_inst("LOAD", " ", 10, 0);
-    // make_inst("LOAD", " ", 20, 1);
-    make_inst("SUB", " ", 20, 1);
+    make_inst("MUL", " ", 20, 1);
     make_inst("HALT", " ", 0, 2);
     // make_inst("BREQ", " ", 4, res);
     // copy_str(res, memory[2]);
@@ -217,11 +204,11 @@ void store_bin_int(int num, int memory_index)
 {
     char bin[INSTRUCTION_LENGTH];
     fill_with_zeros(bin, INSTRUCTION_LENGTH - 1);
-    int_to_bin(num, INSTRUCTION_LENGTH-1, bin);
+    int_to_bin(num, INSTRUCTION_LENGTH - 1, bin);
     copy_str(bin, memory[memory_index]);
 }
 
-void make_inst(char mnemo_command[], char mnemo_mode[], int num, unsigned int memory_index)
+void make_inst(char mnemo_command[], char mnemo_mode[], unsigned int num, unsigned int memory_index)
 {
     char bin_str[INSTRUCTION_LENGTH];
     fill_with_zeros(bin_str, INSTRUCTION_LENGTH - 1);
@@ -260,15 +247,6 @@ void make_inst(char mnemo_command[], char mnemo_mode[], int num, unsigned int me
 
 int main(void)
 {
-    // char left[INSTRUCTION_LENGTH];
-    // char right[INSTRUCTION_LENGTH];
-    // int_to_bin(-36, INSTRUCTION_LENGTH - 1, right);
-    // int res = bin_to_int(right);
-    // printf("%s right\n", right);
-    // printf("%d res\n", res);
-    // int_to_bin(36, INSTRUCTION_LENGTH - 1, left);
-    // printf("%s left\n", left);
-    // 0000000000110011
     main_loop();
     printf("AC %s\n", AC);
     printf("AC %d\n", bin_to_int(AC));

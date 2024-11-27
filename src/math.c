@@ -5,22 +5,23 @@
 #include "../include/math.h"
 #include "../include/helper.h"
 
-//     17
-//     15
-//     85
-//    17
-//    255
 void mult_two_bin(char bin1[], char bin2[], char res[])
 {
-    assert(strlen(bin1) == strlen(bin2));
-    char temp[strlen(bin2)];
-    fill_with_zeros(temp, strlen(bin2));
-    for (int i = 0; i < strlen(bin2); i++)
+    int bin2len = strlen(bin2);
+    int bin1len = strlen(bin1);
+    assert(bin1len == bin2len);
+    char temp[bin2len + 1];
+    char multiplier[bin2len + 1];
+    fill_with_zeros(temp, bin2len);
+    fill_with_zeros(multiplier, bin2len);
+    for (int i = 0; i < bin2len; i++)
     {
         mult_bin_by_digit(bin1, bin2[i] - '0', temp);
-        left_shift_bin(temp, strlen(bin2) - i - 1);
-        sum_two_bin(res, temp, res);
+        left_shift_bin(temp, bin2len - i - 1);
+        sum_two_bin(multiplier, temp, multiplier);
+        
     }
+    copy_str(multiplier, res);
 }
 
 void mult_bin_by_digit(char mul[], int value, char res[])
@@ -121,7 +122,7 @@ void sum_two_bin(char a[], char b[], char sum[])
     unsigned long b_len = strlen(b);
     if (a_len != b_len)
     {
-        printf("Error in sum_two_bin, diff in lengths");
+        printf("Error in sum_two_bin, diff in lengths a - %d, b - %d", a_len, b_len);
         abort();
     }
     int carry = 0;
