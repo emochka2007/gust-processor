@@ -1,0 +1,3 @@
+LOAD =42
+MUL =10
+HALT
