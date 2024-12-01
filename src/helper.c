@@ -10,12 +10,16 @@ void fill_with_zeros(char *bin, unsigned long len) {
     for (unsigned long i = 0; i < len; i++) {
         bin[i] = '0';
     }
+
+    printf("%s bin fill \n", bin);
+    // length - 1
     bin[len] = '\0';
+
 }
 
 void copy_str(char from[], char to[]) {
-    printf("from %d\n", strlen(from));
-    printf("to %d\n", strlen(to));
+    // printf("from %d\n", strlen(from));
+    // printf("to %d\n", strlen(to));
     assert(strlen(from) == strlen(to));
     for (unsigned long i = 0; i < strlen(from); i++) {
         to[i] = from[i];

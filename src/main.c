@@ -8,7 +8,38 @@
 #include "../include/debug.h"
 
 int is_halt = 0;
-
+void print_memory(int from, int to ){
+    for (int i=from; i<to; i++){
+        printf("MEMORY [%d] - [%s]\n", i, memory[i]);
+    }
+}
+FILE *read_file(char *path)
+{
+    FILE *file;
+    file = fopen(path, "r");
+    return file;
+}
+void read_from_file_and_store(FILE *file, unsigned int size, char *res)
+{
+    printf("%s - res in read_from file\n", res);
+    int dispay;
+    int index = 0;
+    while (index < size)
+    {
+        dispay = fgetc(file);
+        if (dispay == EOF)
+        {
+            printf("\n", dispay);
+            printf("Error in reading bytes from file %d\n", __LINE__);
+            abort();
+        }
+        // printf("%c", dispay);
+        // printf("index - %d\n", index);
+        res[index] = dispay;
+        index++;
+    }
+    res[size] = '\0';
+}
 void get_bits_from_instruction(int start, int end, char result[])
 {
     for (int i = start, j = 0; i <= end; i++, j++)
@@ -165,13 +196,10 @@ void instruction_cycle(void)
         store_command(operation);
         // print_each_register();
         instruction_steps(operation, mode);
-        // print_instruction();
         max_iter++;
     }
 }
-
-void main_loop(void)
-{
+void fill_memory_with_zeros(){
     for (int i = 0; i < 1024; i++)
     {
         for (int j = 0; j < INSTRUCTION_LENGTH; j++)
@@ -180,20 +208,16 @@ void main_loop(void)
         }
         memory[i][INSTRUCTION_LENGTH - 1] = '\0';
     }
+}
+void main_loop(void)
+{
     char res[INSTRUCTION_LENGTH];
     fill_with_zeros(res, INSTRUCTION_LENGTH - 1);
-
-    // make_inst("LOAD", "=", 5, res);
-    // copy_str(res, memory[0]);
-    // // make_inst("SUB", "=", 10, res);
-    // make_inst("SUB", "=", 10, res);
-    // copy_str(res, memory[1]);
-
-    store_bin_int(-2, 10);
-    store_bin_int(-3, 20);
-    make_inst("LOAD", " ", 10, 0);
-    make_inst("MUL", " ", 20, 1);
-    make_inst("HALT", " ", 0, 2);
+    // store_bin_int(-2, 10);
+    // store_bin_int(-3, 20);
+    // make_inst("LOAD", " ", 10, 0);
+    // make_inst("MUL", " ", 20, 1);
+    // make_inst("HALT", " ", 0, 2);
     // make_inst("BREQ", " ", 4, res);
     // copy_str(res, memory[2]);
     // make_inst("BR", " ", 1, res);
@@ -247,6 +271,23 @@ void make_inst(char mnemo_command[], char mnemo_mode[], unsigned int num, unsign
 
 int main(void)
 {
+    FILE *file = NULL;
+    file = read_file("./emulator.obj");
+    char commands_length[ADDRESS_LENGTH];
+    fill_with_zeros(commands_length, ADDRESS_LENGTH - 1);
+    read_from_file_and_store(file, ADDRESS_LENGTH - 1, commands_length);
+    // printf("\nCommand length %d\n", bin_to_int(commands_length));
+    char res[INSTRUCTION_LENGTH];
+    fill_with_zeros(res, INSTRUCTION_LENGTH - 1);
+    fill_memory_with_zeros();
+    printf("%s before loop \n", res);
+    for (int i = 0; i < bin_to_int(commands_length); i++)
+    {
+        read_from_file_and_store(file, INSTRUCTION_LENGTH - 1, res);
+        printf("%s copy_str \n", res);
+        copy_str(res, memory[i]);
+    }
+    print_memory(0, 3);
     main_loop();
     printf("AC %s\n", AC);
     printf("AC %d\n", bin_to_int(AC));

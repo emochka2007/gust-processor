@@ -100,4 +100,3 @@ fn verify_and_capture<'a>(
         exit(1);
     }
 }
-fn write_into_obj_file(text: &String) {}
