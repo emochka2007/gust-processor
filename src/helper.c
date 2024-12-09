@@ -6,12 +6,12 @@
 #include <stdio.h>
 
 void fill_with_zeros(char *bin, unsigned long len) {
-    printf("len - %d\n", len);
+    // printf("len - %d\n", len);
     for (unsigned long i = 0; i < len; i++) {
         bin[i] = '0';
     }
 
-    printf("%s bin fill \n", bin);
+    // printf("%s bin fill \n", bin);
     // length - 1
     bin[len] = '\0';
 
@@ -55,5 +55,13 @@ void copy_diff_len_str(char from[], char to[], unsigned long diff) {
     for (unsigned long i = diff, j = 0; i < strlen(to); i++, j++) {
         to[i] = from[j];
     }
-}
 
+}
+void copy_from_long_to_short(char from_long[], char to_short[]) {
+    int from_len = strlen(from_long);
+    int to_len = strlen(to_short);
+    assert(from_len>to_len);
+    for (int i =1; i<=to_len;i++){
+        to_short[to_len-i] = from_long[from_len-i];
+    }
+}

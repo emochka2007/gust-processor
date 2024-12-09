@@ -8,8 +8,10 @@
 #include "../include/debug.h"
 
 int is_halt = 0;
-void print_memory(int from, int to ){
-    for (int i=from; i<to; i++){
+void print_memory(int from, int to)
+{
+    for (int i = from; i < to; i++)
+    {
         printf("MEMORY [%d] - [%s]\n", i, memory[i]);
     }
 }
@@ -21,7 +23,7 @@ FILE *read_file(char *path)
 }
 void read_from_file_and_store(FILE *file, unsigned int size, char *res)
 {
-    printf("%s - res in read_from file\n", res);
+    // printf("%s - res in read_from file\n", res);
     int dispay;
     int index = 0;
     while (index < size)
@@ -71,6 +73,11 @@ void address_mode(char mode[ADDRESS_MODE_LENGTH])
     else if (strcmp(mode, IMMEDIATE_MODE) == 0)
     {
         copy_diff_len_str(MAR, MBR, 16 - 10);
+    }
+    else if (strcmp(mode, INDEXED_MODE) == 0)
+    {
+        sum_two_bin(MAR, MBR, MAR);
+        printf("MAR %s \n", MAR);
     }
     else
     {
@@ -141,8 +148,19 @@ void instruction_steps(char inst[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH]
     }
     else if (strcmp(inst, STORE) == 0)
     {
-        copy_str(AC, MBR);
+        // Direct mode of addressing
+        //    MAR <- IR<address field>
+        // Immediate mode of addressing
+        //    MAR <- IR<address field>
+        //    MBR <- MAR
+        copy_str(AC, MBR); //  MBR <- AC
+
         int index = bin_to_int(MAR);
+        if (index == 1)
+        {
+        printf("index %d \n", index);
+            copy_from_long_to_short(AC, XR);
+        }
         copy_str(MBR, memory[index]);
     }
     else if (strcmp(inst, BR) == 0)
@@ -188,7 +206,6 @@ void instruction_cycle(void)
         store_address_mode(mode);
         address_mode(mode);
 
-        print_each_register();
         sum_two_bin(PC, "0000000001", PC);
 
         // Perform the operation
@@ -196,10 +213,12 @@ void instruction_cycle(void)
         store_command(operation);
         // print_each_register();
         instruction_steps(operation, mode);
+        print_each_register();
         max_iter++;
     }
 }
-void fill_memory_with_zeros(){
+void fill_memory_with_zeros()
+{
     for (int i = 0; i < 1024; i++)
     {
         for (int j = 0; j < INSTRUCTION_LENGTH; j++)
@@ -264,32 +283,31 @@ void make_inst(char mnemo_command[], char mnemo_mode[], unsigned int num, unsign
     {
         bin_str[i] = bin_int[j];
     }
-    printf("%s bin_str\n", bin_str);
+    // printf("%s bin_str\n", bin_str);
     copy_str(bin_str, memory[memory_index]);
     // printf("%s bin_int\n", bin_int);
 }
-
-int main(void)
-{
+void read_from_file_and_store_into_memory(){
     FILE *file = NULL;
     file = read_file("./emulator.obj");
     char commands_length[ADDRESS_LENGTH];
     fill_with_zeros(commands_length, ADDRESS_LENGTH - 1);
     read_from_file_and_store(file, ADDRESS_LENGTH - 1, commands_length);
-    // printf("\nCommand length %d\n", bin_to_int(commands_length));
     char res[INSTRUCTION_LENGTH];
     fill_with_zeros(res, INSTRUCTION_LENGTH - 1);
     fill_memory_with_zeros();
-    printf("%s before loop \n", res);
     for (int i = 0; i < bin_to_int(commands_length); i++)
     {
         read_from_file_and_store(file, INSTRUCTION_LENGTH - 1, res);
-        printf("%s copy_str \n", res);
         copy_str(res, memory[i]);
     }
-    print_memory(0, 3);
+ 
+}
+
+int main(void)
+{
+   // print_memory(0, 3);
+    read_from_file_and_store_into_memory();
     main_loop();
-    printf("AC %s\n", AC);
-    printf("AC %d\n", bin_to_int(AC));
     return 0;
 }

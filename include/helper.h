@@ -11,4 +11,5 @@ void store_command(char to[COMMAND_LENGTH]);
 
 void store_address(char to[ADDRESS_LENGTH]);
 void copy_diff_len_str(char from[], char to[], unsigned long diff);
+void copy_from_long_to_short(char from_long[], char to_short[]);
 void add_prefix_zeros(char bin[], char to[], int prefix_len);

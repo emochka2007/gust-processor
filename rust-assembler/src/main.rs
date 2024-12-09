@@ -18,22 +18,36 @@ fn main() {
         Regex::new(r"^(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV)\s+([=@$])?([0-9]+)\s*")
             .unwrap();
     let halt_regex = Regex::new(r"^HALT\s*$").unwrap();
+    let data_regex = Regex::new(r"^DATA\s*(([0-9]+)((,[0-9]+))*)\s*").unwrap();
     let file_content = read_from_file(input_path);
+    println!("{}", file_content.len());
     let mut write_context = File::create(output_path.as_str()).unwrap();
-    let mut instruction_all = String::from(format!("{:0>10b}", file_content.len()));
+    let mut instruction_all = String::from("");
+    let mut commands_count = 0;
     for line in file_content {
-        let (command, address_mode, address) =
-            verify_and_capture(&line, &command_regex, &halt_regex);
-        // println!("all {}, command {}, address_mode {}, address {}", all, command, address_mode, address);
-        let instruction = make_assembly_inst(
-            String::from(command),
-            String::from(address_mode),
-            String::from(address),
-        );
-        println!("{}", instruction);
-        instruction_all.push_str(instruction.as_str());
+        match data_regex.is_match(&line) {
+            true => {
+                let (binary_data, data_length) = capture_and_parse_data(&line, &data_regex);
+                instruction_all.push_str(&binary_data);
+                commands_count += data_length;
+            }
+            _ => {
+                let (command, address_mode, address) =
+                    verify_and_capture(&line, &command_regex, &halt_regex);
+                // println!("all {}, command {}, address_mode {}, address {}", all, command, address_mode, address);
+                let instruction = make_assembly_inst(
+                    String::from(command),
+                    String::from(address_mode),
+                    String::from(address),
+                );
+                println!("{}", instruction);
+                commands_count+=1;
+                instruction_all.push_str(instruction.as_str());
+            }
+        }
     }
-    write_context.write_all(instruction_all.as_bytes()).unwrap();
+    let full_instruction = format!("{:0>10b}{}", commands_count, instruction_all);
+    write_context.write_all(full_instruction.as_bytes()).unwrap();
 }
 
 fn make_assembly_inst(command: String, mode: String, address: String) -> String {
@@ -99,4 +113,15 @@ fn verify_and_capture<'a>(
         eprintln!("error verifying or capturing");
         exit(1);
     }
+}
+fn capture_and_parse_data<'a>(data: &'a String, data_regex: &Regex) -> (String, usize) {
+    let caps = data_regex.captures(&data).unwrap();
+    let parsed_data: Vec<&'a str> = caps.get(1).map_or("", |m| m.as_str()).split(",").collect();
+    println!("{:?}", parsed_data);
+    let binary_data: Vec<String> = parsed_data
+        .iter()
+        .map(|n| format!("{:0>16b}", n.parse::<u32>().unwrap()))
+        .collect();
+    println!("{:?}", binary_data);
+    ( binary_data.join(""), binary_data.len() )
 }
