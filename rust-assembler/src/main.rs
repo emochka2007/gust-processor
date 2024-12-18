@@ -1,10 +1,9 @@
 use std::env;
-use std::fmt::format;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
 use std::{
-    collections::{hash_map, HashMap},
-    process::{exit, Command},
+    collections::{HashMap},
+    process::{exit},
 };
 
 use regex::Regex;
@@ -89,7 +88,10 @@ fn read_from_file(path: &str) -> Vec<String> {
     let reader = io::BufReader::new(result.unwrap());
     let mut lines = Vec::new();
     for line in reader.lines() {
-        lines.push(line.unwrap());
+        let line = line.unwrap();
+        if !line.trim().is_empty() {
+            lines.push(line);
+        }
     }
     lines
 }
@@ -100,7 +102,7 @@ fn verify_and_capture<'a>(
 ) -> (&'a str, &'a str, &'a str) {
     if command_regex.is_match(&test_str) {
         let caps = command_regex.captures(&test_str).unwrap();
-        let all = caps.get(0).map_or("", |m| m.as_str());
+        let _all = caps.get(0).map_or("", |m| m.as_str());
         let command = caps.get(1).map_or("", |m| m.as_str());
         let address_mode = caps.get(2).map_or("", |m| m.as_str());
         let address = caps.get(3).map_or("", |m| m.as_str());

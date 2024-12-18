@@ -106,8 +106,10 @@ int bin_to_int(char bin[])
     }
     if (sign == '1')
     {
-        twos_complement(bin, bin);
-        return bin_to_uint(bin) * -1;
+        char temp_bin[strlen(bin)];
+        fill_with_zeros(temp_bin, strlen(bin));
+        twos_complement(bin, temp_bin);
+        return bin_to_uint(temp_bin) * -1;
     }
     else
     {
@@ -248,9 +250,7 @@ void sub_complement(char from[], char to[], char from_res[])
     fill_with_zeros(res_complement, INSTRUCTION_LENGTH - 1);
     // to subtract - pass here
     twos_complement(to, res_complement);
-     printf("%s to \n", to);
     sum_two_bin(from, res_complement, from_res);
-    printf("%s res 3\n", from_res);
     // printf("AC %s\n", AC);
     // printf("AC %d\n", bin_to_int(AC));
 }

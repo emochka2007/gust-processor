@@ -19,9 +19,13 @@ char HALT[COMMAND_LENGTH] = "0000";
 char LOAD[COMMAND_LENGTH] = "0001";
 char STORE[COMMAND_LENGTH] = "0010";
 char CALL[COMMAND_LENGTH] = "0011";
+// Unconditional branch
 char BR[COMMAND_LENGTH] = "0100";
+// if AC == 0
 char BREQ[COMMAND_LENGTH] = "0101";
+// If AC >= 0
 char BRGE[COMMAND_LENGTH] = "0110";
+// If AC < 0
 char BRLT[COMMAND_LENGTH] = "0111";
 char ADD[COMMAND_LENGTH] = "1000";
 char SUB[COMMAND_LENGTH] = "1001";
