@@ -5,7 +5,7 @@ CFLAGS=-Wall -Wextra -std=c17 -pedantic -ggdb
 EXE=emulator
 SRCDIR=src
 BINDIR=bin
-OBJS=$(BINDIR)/main.o $(BINDIR)/math.o $(BINDIR)/helper.o $(BINDIR)/debug.o $(BINDIR)/core.o
+OBJS=$(BINDIR)/main.o $(BINDIR)/math.o $(BINDIR)/helper.o $(BINDIR)/debug.o $(BINDIR)/core.o $(BINDIR)/file.o $(BINDIR)/memory.o
 
 all: $(EXE)
 
