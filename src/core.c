@@ -191,7 +191,7 @@ void instruction_cycle(void) {
         print_each_register();
         // Increment PC
         sum_two_bin(PC, "0000000001", PC);
-        sleep(1);
+        // sleep(1);
         MAX_ITER--;
     }
 }

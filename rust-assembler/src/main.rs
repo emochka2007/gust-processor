@@ -1,10 +1,7 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
-use std::{
-    collections::{HashMap},
-    process::{exit},
-};
+use std::{collections::HashMap, process::exit};
 
 use regex::Regex;
 
@@ -14,7 +11,7 @@ fn main() {
     let output_path = args.get(2).unwrap();
     println!("Reading assembly code from {input_path}...");
     let command_regex =
-        Regex::new(r"^(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV)\s+([=@$])?([0-9]+)\s*")
+        Regex::new(r"^(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV|ORG|END)\s+([=@$])?([0-9]+)\s*")
             .unwrap();
     let halt_regex = Regex::new(r"^HALT\s*$").unwrap();
     let data_regex = Regex::new(r"^DATA\s*(([0-9]+)((,[0-9]+))*)\s*").unwrap();
@@ -22,6 +19,8 @@ fn main() {
     let mut write_context = File::create(output_path.as_str()).unwrap();
     let mut instruction_all = String::from("");
     let mut commands_count = 0;
+    let mut org_value: String = format!("{:0>10b}", 0);
+    let mut end_value: String = format!("{:0>10b}", 0);
     for line in file_content {
         match data_regex.is_match(&line) {
             true => {
@@ -30,20 +29,35 @@ fn main() {
                 commands_count += data_length;
             }
             _ => {
+                commands_count += 1;
                 let (command, address_mode, address) =
                     verify_and_capture(&line, &command_regex, &halt_regex);
+                if command == "ORG" {
+                    if address_mode != "" {
+                        panic!("Address mode cannot be {} for ORG", address_mode);
+                    }
+                    org_value = format!("{:0>10b}", address.parse::<i32>().unwrap());
+                    continue;
+                } else if command == "END" {
+                    if address_mode != "" {
+                        panic!("Address mode cannot be {} for END", address_mode);
+                    }
+                    end_value = format!("{:0>10b}", address.parse::<i32>().unwrap());
+                    continue;
+                }
                 let instruction = make_assembly_inst(
                     String::from(command),
                     String::from(address_mode),
                     String::from(address),
                 );
-                commands_count += 1;
                 instruction_all.push_str(instruction.as_str());
             }
         }
     }
-    let full_instruction = format!("{:0>10b}{}", commands_count, instruction_all);
-    write_context.write_all(full_instruction.as_bytes()).unwrap();
+    let full_instruction = format!("{}{}{:0>10b}{}",org_value, end_value, commands_count, instruction_all);
+    write_context
+        .write_all(full_instruction.as_bytes())
+        .unwrap();
 }
 
 fn make_assembly_inst(command: String, mode: String, address: String) -> String {

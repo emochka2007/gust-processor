@@ -37,21 +37,39 @@ void print_memory(const int from, const int to) {
     }
 }
 
-void print_each_register(void) {
-    printf("\n================ Processor State ================\n");
-    printf("Instruction: ");
-    print_instruction();
-    printf("\nMemory (9-10):\n");
+void print_each_register(void)
+{
+    // printf("IR %s\n", IR);
+    // printf("PC %s\n", PC);
+    // printf("MAR %s\n", MAR);
+    // printf("MBR %s\n", MBR);
+    // printf("XR %s\n", XR);
+    // printf("AC %s\n", AC);
     print_memory(9, 10);
+    print_instruction();
+    printf("IR %s|||", IR);
+    printf("PC %s - %d |||", PC, bin_to_int(PC));
+    // printf("MAR %s - %d |||", MAR, bin_to_int(MAR));
+    // printf("MBR %s - %d |||", MBR, bin_to_int(MBR));
+    printf("XR %s - %d |||", XR, bin_to_int(XR));
+    printf("AC %s - %d |||", AC, bin_to_int(AC));
     printf("\n");
-
-    printf("Register States:\n");
-    printf("  IR  : %-16s\n", IR);
-    printf("  PC  : %-16s (Decimal: %d)\n", PC, bin_to_int(PC));
-    // Uncomment MAR and MBR if needed for debugging
-    // printf("  MAR : %-16s (Decimal: %d)\n", MAR, bin_to_int(MAR));
-    // printf("  MBR : %-16s (Decimal: %d)\n", MBR, bin_to_int(MBR));
-    printf("  XR  : %-16s (Decimal: %d)\n", XR, bin_to_int(XR));
-    printf("  AC  : %-16s (Decimal: %d)\n", AC, bin_to_int(AC));
-    printf("=================================================\n");
 }
+// void print_each_register(void) {
+//     printf("\n================ Processor State ================\n");
+//     printf("Instruction: ");
+//     print_instruction();
+//     printf("\nMemory (9-10):\n");
+//     print_memory(9, 10);
+//     printf("\n");
+
+//     printf("Register States:\n");
+//     printf("  IR  : %-16s\n", IR);
+//     printf("  PC  : %-16s (Decimal: %d)\n", PC, bin_to_int(PC));
+//     // Uncomment MAR and MBR if needed for debugging
+//     // printf("  MAR : %-16s (Decimal: %d)\n", MAR, bin_to_int(MAR));
+//     // printf("  MBR : %-16s (Decimal: %d)\n", MBR, bin_to_int(MBR));
+//     printf("  XR  : %-16s (Decimal: %d)\n", XR, bin_to_int(XR));
+//     printf("  AC  : %-16s (Decimal: %d)\n", AC, bin_to_int(AC));
+//     printf("=================================================\n");
+// }
