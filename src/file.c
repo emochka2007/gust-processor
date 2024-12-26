@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <_stdlib.h>
+#include <stdlib.h>
 
 #include "../include/core.h"
 #include "../include/helper.h"
@@ -36,16 +36,26 @@ void read_from_file_and_store_into_memory()
     file = read_file("./emulator.obj");
     char org_address[ADDRESS_LENGTH];
     char end_address[ADDRESS_LENGTH];
-    fill_with_zeros(org_address, ADDRESS_LENGTH - 1);
+    // END - ORG - COUNT - INST[] - ORG - COUNT - INST[]
     fill_with_zeros(end_address, ADDRESS_LENGTH - 1);
+    fill_with_zeros(org_address, ADDRESS_LENGTH - 1);
+
+    read_from_file_and_store(file, ADDRESS_LENGTH - 1, end_address);
+    read_from_file_and_store(file, ADDRESS_LENGTH - 1, org_address);
+
     copy_str(end_address, PC);
+
     char commands_length[ADDRESS_LENGTH];
     fill_with_zeros(commands_length, ADDRESS_LENGTH - 1);
     read_from_file_and_store(file, ADDRESS_LENGTH - 1, commands_length);
     char res[INSTRUCTION_LENGTH];
     fill_with_zeros(res, INSTRUCTION_LENGTH - 1);
     fill_memory_with_zeros();
-    for (int i = bin_to_int(org_address); i < bin_to_int(commands_length); i++)
+    printf("org_address - %d\n", bin_to_int(org_address));
+    printf("command length - %d\n", bin_to_int(commands_length));
+    int org_index = bin_to_int(org_address);
+    int command_index =bin_to_int(commands_length); 
+    for (int i = org_index; i < org_index + command_index; i++)
     {
         read_from_file_and_store(file, INSTRUCTION_LENGTH - 1, res);
         copy_str(res, memory[i]);
