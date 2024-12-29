@@ -4,89 +4,20 @@ use std::io::{self, BufRead, Write};
 use std::{collections::HashMap, process::exit};
 
 use regex::Regex;
+type Captured = Vec<(String, String, String)>;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let input_path = args.get(1).unwrap();
     let output_path = args.get(2).unwrap();
     println!("Reading assembly code from {input_path}...");
-    let command_regex = Regex::new(
-        r"^(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV|ORG|END)\s+([=@$])?([0-9]+)\s*",
-    )
-    .unwrap();
-    let halt_regex = Regex::new(r"^HALT\s*$").unwrap();
-    let data_regex = Regex::new(r"^DATA\s*(([0-9]+)((,[0-9]+))*)\s*").unwrap();
-    let file_content = read_from_file(input_path);
     let mut write_context = File::create(output_path.as_str()).unwrap();
-    let mut instruction_all = String::from("");
-    let mut full_instruction = String::from("");
-    let mut commands_count = 0;
-    let mut org_value: String = format!("{:0>10b}", 0);
-    let mut end_value: String = format!("{:0>10b}", 0);
-    let mut command_vec: Vec<Vec<String>> = Vec::new();
-    let mut is_first_org = true;
-    for line in file_content {
-        match data_regex.is_match(&line) {
-            true => {
-                // ORG 0
-                // LOAD 20
-                // BREQ 9
-                // MUL 21
-                // STORE 21
-                // LOAD 20
-                // SUB =1
-                // STORE 21
-                // BRGE 0
-                // HALT
-                // ORG 20
-                // DATA 5
-                // DATA 1
-                // END 0
-                // END - ORG - COUNT - INST[] - ORG - COUNT - INST[]
-                let (binary_data, data_length) = capture_and_parse_data(&line, &data_regex);
-                instruction_all.push_str(&binary_data);
-                commands_count += data_length;
-            }
-            _ => {
-                let mut command_vec: Vec<String> = Vec::new();
-                while is_first_org {
-                    let (command, address_mode, address) =
-                        verify_and_capture(&line, &command_regex, &halt_regex);
-                    command_vec.push(command.to_string());
-                    if command == "ORG" {
-                        is_first_org = false
-                    }
-                }
+    let file_content = read_from_file(input_path);
 
-                // if command == "ORG" {
-                //     if address_mode != "" {
-                //         panic!("Address mode cannot be {} for ORG", address_mode);
-                //     }
-                //     org_value = format!("{:0>10b}", address.parse::<i32>().unwrap());
-                //     continue;
-                // } else if command == "END" {
-                //     if address_mode != "" {
-                //         panic!("Address mode cannot be {} for END", address_mode);
-                //     }
-                //     end_value = format!("{:0>10b}", address.parse::<i32>().unwrap());
-                //     continue;
-                // }
-                // commands_count += 1;
-                // let instruction = make_assembly_inst(
-                //     String::from(command),
-                //     String::from(address_mode),
-                //     String::from(address),
-                // );
-                // instruction_all.push_str(instruction.as_str());
-            }
-        }
-    }
-    let full_instruction = format!(
-        "{}{}{:0>10b}{}",
-        end_value, org_value, commands_count, instruction_all
-    );
+    let command_array = create_command_array(file_content);
+    let bin = command_array_to_bin(command_array);
     write_context
-        .write_all(full_instruction.as_bytes())
+        .write_all(bin.as_bytes())
         .unwrap();
 }
 
@@ -163,4 +94,92 @@ fn capture_and_parse_data<'a>(data: &'a String, data_regex: &Regex) -> (String, 
         .map(|n| format!("{:0>16b}", n.parse::<u32>().unwrap()))
         .collect();
     (binary_data.join(""), binary_data.len())
+}
+fn create_command_array(file_content: Vec<String>) -> Vec<Captured> {
+    let command_regex = Regex::new(
+        r"^(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV|ORG|END)\s+([=@$])?([0-9]+)\s*",
+    )
+        .unwrap();
+    let halt_regex = Regex::new(r"^HALT\s*$").unwrap();
+    let data_regex = Regex::new(r"^DATA\s*(([0-9]+)((,[0-9]+))*)\s*").unwrap();
+
+    let mut command_vec: Captured = Vec::new();
+    for line in file_content {
+        match data_regex.is_match(&line) {
+            true => {
+                let (binary_data, data_length) = capture_and_parse_data(&line, &data_regex);
+                // instruction_all.push_str(&binary_data);
+                // commands_count += data_length;
+                command_vec.push(("DATA".to_string(), "".to_string(), binary_data));
+            }
+            _ => {
+                let (command, address_mode, address) =
+                    verify_and_capture(&line, &command_regex, &halt_regex);
+                command_vec.push((command.to_string(), address_mode.to_string(), address.to_string()));
+            }
+        }
+    }
+    split_by_org(command_vec)
+}
+fn command_array_to_bin(data: Vec<Captured>) -> String {
+    let mut instructions = Vec::new();
+    let mut end_value: String = format!("{:0>10b}", 0);
+    for org_split in data {
+        let mut org_inst = String::new();
+        let mut org_value: String = format!("{:0>10b}", 0);
+        let size = format!("{:0>10b}", commands_count(&org_split));
+        for capture in org_split {
+            if capture.0 == "ORG" {
+                org_value = format!("{:0>10b}", capture.2.parse::<i32>().unwrap());
+                continue;
+            }
+            else if capture.0 == "END" {
+                end_value = format!("{:0>10b}", capture.2.parse::<i32>().unwrap());
+            }
+            else if capture.0 == "DATA" {
+                org_inst.push_str(&capture.2);
+                continue;
+            }
+            else  {
+                let inst = make_assembly_inst(capture.0, capture.1, capture.2);
+                org_inst.push_str(&*inst);
+            }
+        }
+        org_inst = format!("{}{}{}", org_value, size, org_inst);
+        instructions.push(org_inst);
+    }
+    println!("{:?}", end_value);
+    println!("{:?}", instructions);
+    let mut full_inst = instructions.join("");
+    full_inst = format!("{}{}", end_value, full_inst);
+    full_inst
+}
+fn commands_count(data: &Captured) -> usize {
+    let mut size = 0;
+        for capture in data {
+            if capture.0 == "END" || capture.0 == "ORG"{
+                continue;
+            } else {
+                size+=1;
+            }
+        }
+    size
+}
+fn split_by_org(data: Captured) -> Vec<Captured> {
+    let mut result: Vec<Captured> = Vec::new();
+    let mut org_count = 0;
+    let mut temp_vec: Captured = Vec::new();
+    println!("{:?}", data);
+    for capture in data {
+        if capture.0 == "ORG" {
+            org_count += 1;
+        }
+        if org_count > 1 && capture.0 == "ORG" {
+            result.push(temp_vec);
+            temp_vec = Vec::new();
+        }
+        temp_vec.push(capture);
+    }
+    result.push(temp_vec);
+    result
 }

@@ -54,7 +54,7 @@ char *BIN_COMMANDS_STR[COMMANDS_COUNT] = {
 // Is HALT command executed, to stop the loop
 unsigned int is_halt = 0;
 // MAX iteration to prevent infinite loop
-unsigned int MAX_ITER = 1000;
+unsigned int MAX_ITER = 10000;
 
 /**
  *
@@ -191,6 +191,7 @@ void instruction_cycle(void) {
         print_each_register();
         // Increment PC
         sum_two_bin(PC, "0000000001", PC);
+        // getchar();
         // sleep(1);
         MAX_ITER--;
     }
