@@ -65,14 +65,22 @@ fn read_from_file(path: &str) -> Vec<String> {
     }
     lines
 }
-fn verify_and_capture<'a>(
-    test_str: &'a String,
-    command_regex: &Regex,
-    halt_regex: &Regex,
-) -> (&'a str, &'a str, &'a str) {
+fn verify_and_capture(
+    test_str: &String,
+) -> (&str, &str, &str) {
+    let command_regex = Regex::new(
+        r"^([A-Z]+)?\s*(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV|ORG|END)\s+([=@$])?(([0-9]+)|([A-Z]+))\s*",
+    )
+        .unwrap();
+
+    let halt_regex = Regex::new(r"^([A-Z]+)?\s*HALT\s*$").unwrap();
+    println!("{}",test_str);
+    println!("{}",command_regex.is_match(&test_str));
+    println!("{}",halt_regex.is_match(&test_str));
     if command_regex.is_match(&test_str) {
         let caps = command_regex.captures(&test_str).unwrap();
         let _all = caps.get(0).map_or("", |m| m.as_str());
+        println!("{}", _all);
         let command = caps.get(1).map_or("", |m| m.as_str());
         let address_mode = caps.get(2).map_or("", |m| m.as_str());
         let address = caps.get(3).map_or("", |m| m.as_str());
@@ -95,26 +103,32 @@ fn capture_and_parse_data<'a>(data: &'a String, data_regex: &Regex) -> (String, 
         .collect();
     (binary_data.join(""), binary_data.len())
 }
+
+// [(метка, имя_коанды, способ_адресации, поле_адреса)]
+
+// START LOAD =1
+// ("START","LOAD","=","1")
+// STORE LSTFIB
+// ("","STORE","","LSTFIB")
+// DATA 1,2,3
+// ("","DATA","","1")
+// ("","DATA","","2") ...
+
 fn create_command_array(file_content: Vec<String>) -> Vec<Captured> {
-    let command_regex = Regex::new(
-        r"^(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV|ORG|END)\s+([=@$])?([0-9]+)\s*",
-    )
-        .unwrap();
-    let halt_regex = Regex::new(r"^HALT\s*$").unwrap();
-    let data_regex = Regex::new(r"^DATA\s*(([0-9]+)((,[0-9]+))*)\s*").unwrap();
+
+    let data_regex = Regex::new(r"^([A-Z]+)?\s+DATA\s*(([0-9]+)((,[0-9]+))*)\s*").unwrap();
 
     let mut command_vec: Captured = Vec::new();
     for line in file_content {
         match data_regex.is_match(&line) {
             true => {
+                //TODO: fix data with comma 
                 let (binary_data, data_length) = capture_and_parse_data(&line, &data_regex);
-                // instruction_all.push_str(&binary_data);
-                // commands_count += data_length;
                 command_vec.push(("DATA".to_string(), "".to_string(), binary_data));
             }
             _ => {
                 let (command, address_mode, address) =
-                    verify_and_capture(&line, &command_regex, &halt_regex);
+                    verify_and_capture(&line);
                 command_vec.push((command.to_string(), address_mode.to_string(), address.to_string()));
             }
         }
@@ -148,8 +162,8 @@ fn command_array_to_bin(data: Vec<Captured>) -> String {
         org_inst = format!("{}{}{}", org_value, size, org_inst);
         instructions.push(org_inst);
     }
-    println!("{:?}", end_value);
-    println!("{:?}", instructions);
+    // println!("{:?}", end_value);
+    // println!("{:?}", instructions);
     let mut full_inst = instructions.join("");
     full_inst = format!("{}{}", end_value, full_inst);
     full_inst
