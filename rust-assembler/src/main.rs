@@ -4,17 +4,19 @@ use std::io::{self, BufRead, Write};
 use std::{collections::HashMap, process::exit};
 
 use regex::Regex;
-type Captured = Vec<(String, String, String)>;
+type LineTuple = (String, String, String, String);
+type Captured = Vec<LineTuple>;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let input_path = args.get(1).unwrap();
     let output_path = args.get(2).unwrap();
+    let mut var_map: HashMap<String, i32> = HashMap::new();
     println!("Reading assembly code from {input_path}...");
     let mut write_context = File::create(output_path.as_str()).unwrap();
     let file_content = read_from_file(input_path);
 
-    let command_array = create_command_array(file_content);
+    let command_array = create_command_array(file_content, &mut var_map);
     let bin = command_array_to_bin(command_array);
     write_context
         .write_all(bin.as_bytes())
@@ -67,28 +69,35 @@ fn read_from_file(path: &str) -> Vec<String> {
 }
 fn verify_and_capture(
     test_str: &String,
-) -> (&str, &str, &str) {
+    mut var_map: &mut HashMap<String, i32>,
+) -> LineTuple {
     let command_regex = Regex::new(
-        r"^([A-Z]+)?\s*(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV|ORG|END)\s+([=@$])?(([0-9]+)|([A-Z]+))\s*",
+        r"^([A-Z]+)?\s+(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV|ORG|END)\s+([=@$])?(([0-9]+)|([A-Z]+))\s*",
     )
         .unwrap();
 
-    let halt_regex = Regex::new(r"^([A-Z]+)?\s*HALT\s*$").unwrap();
-    println!("{}",test_str);
-    println!("{}",command_regex.is_match(&test_str));
-    println!("{}",halt_regex.is_match(&test_str));
+    let halt_regex = Regex::new(r"^([A-Z]+)?\s*(HALT)\s*$").unwrap();
+    let var_regex = Regex::new(r"([A-Z]+)\s+([0-9]+)").unwrap();
     if command_regex.is_match(&test_str) {
         let caps = command_regex.captures(&test_str).unwrap();
         let _all = caps.get(0).map_or("", |m| m.as_str());
         println!("{}", _all);
-        let command = caps.get(1).map_or("", |m| m.as_str());
-        let address_mode = caps.get(2).map_or("", |m| m.as_str());
-        let address = caps.get(3).map_or("", |m| m.as_str());
-        (command, address_mode, address)
+        let point = caps.get(1).map_or("", |m| m.as_str());
+        let command = caps.get(2).map_or("", |m| m.as_str());
+        let address_mode = caps.get(3).map_or("", |m| m.as_str());
+        let address = caps.get(4).map_or("", |m| m.as_str());
+        (point.to_string(), command.to_string(), address_mode.to_string(), address.to_string())
     } else if halt_regex.is_match(&test_str) {
         let caps = halt_regex.captures(&test_str).unwrap();
-        let command = caps.get(0).map_or("", |m| m.as_str());
-        (command, "", "")
+        let point = caps.get(1).map_or("", |m| m.as_str());
+        let command = caps.get(2).map_or("", |m| m.as_str());
+        (point.to_string(), command.to_string(), "".to_string(), "".to_string())
+    } else if var_regex.is_match(&test_str) {
+        let caps = var_regex.captures(&test_str).unwrap();
+        let var = caps.get(1).map_or("", |m| m.as_str());
+        let var_value = caps.get(2).map_or("", |m| m.as_str()).parse::<i32>().unwrap();
+        var_map.insert(var.to_string(), var_value);
+        ("".to_string(), "".to_string(), "".to_string(), "".to_string())
     } else {
         eprintln!("error verifying or capturing");
         exit(1);
@@ -114,8 +123,7 @@ fn capture_and_parse_data<'a>(data: &'a String, data_regex: &Regex) -> (String, 
 // ("","DATA","","1")
 // ("","DATA","","2") ...
 
-fn create_command_array(file_content: Vec<String>) -> Vec<Captured> {
-
+fn create_command_array(file_content: Vec<String>, map: &mut HashMap<String, i32>) -> Vec<Captured> {
     let data_regex = Regex::new(r"^([A-Z]+)?\s+DATA\s*(([0-9]+)((,[0-9]+))*)\s*").unwrap();
 
     let mut command_vec: Captured = Vec::new();
@@ -124,12 +132,26 @@ fn create_command_array(file_content: Vec<String>) -> Vec<Captured> {
             true => {
                 //TODO: fix data with comma 
                 let (binary_data, data_length) = capture_and_parse_data(&line, &data_regex);
-                command_vec.push(("DATA".to_string(), "".to_string(), binary_data));
+                command_vec.push(("".to_string(), "DATA".to_string(), "".to_string(), binary_data));
             }
             _ => {
-                let (command, address_mode, address) =
-                    verify_and_capture(&line);
-                command_vec.push((command.to_string(), address_mode.to_string(), address.to_string()));
+                let (point, command, address_mode, address) =
+                    verify_and_capture(&line, map);
+                if command != "" {
+                    command_vec.push((point, command, address_mode, address));
+                }
+            }
+        }
+    }
+    for command in &mut command_vec {
+        if command.0 != "" {
+            let var_value = map.get(&command.0).unwrap_or_else(|| {println!("Variable {} not found", command.0); exit(1);});
+            command.0 = var_value.to_string();
+        }
+        if command.3.len() > 0 {
+            if let Err(_) = command.3.parse::<i32>() {
+                let var_value = map.get(&command.3).unwrap_or_else(|| {println!("Variable {} not found", command.3); exit(1);});
+                command.3 = var_value.to_string();
             }
         }
     }
@@ -146,15 +168,12 @@ fn command_array_to_bin(data: Vec<Captured>) -> String {
             if capture.0 == "ORG" {
                 org_value = format!("{:0>10b}", capture.2.parse::<i32>().unwrap());
                 continue;
-            }
-            else if capture.0 == "END" {
+            } else if capture.0 == "END" {
                 end_value = format!("{:0>10b}", capture.2.parse::<i32>().unwrap());
-            }
-            else if capture.0 == "DATA" {
+            } else if capture.0 == "DATA" {
                 org_inst.push_str(&capture.2);
                 continue;
-            }
-            else  {
+            } else {
                 let inst = make_assembly_inst(capture.0, capture.1, capture.2);
                 org_inst.push_str(&*inst);
             }
@@ -170,13 +189,13 @@ fn command_array_to_bin(data: Vec<Captured>) -> String {
 }
 fn commands_count(data: &Captured) -> usize {
     let mut size = 0;
-        for capture in data {
-            if capture.0 == "END" || capture.0 == "ORG"{
-                continue;
-            } else {
-                size+=1;
-            }
+    for capture in data {
+        if capture.0 == "END" || capture.0 == "ORG" {
+            continue;
+        } else {
+            size += 1;
         }
+    }
     size
 }
 fn split_by_org(data: Captured) -> Vec<Captured> {
