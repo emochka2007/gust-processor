@@ -44,15 +44,16 @@ void print_each_register(void) {
     // printf("MBR %s\n", MBR);
     // printf("XR %s\n", XR);
     // printf("AC %s\n", AC);
-    print_memory(0, 10);
-    print_memory(19, 22);
+    // print_memory(0, 1);
+    print_memory(100, 107);
+    // print_memory(110, 115);
     print_instruction();
     printf("IR %s|||", IR);
-    printf("PC %s - %d |||", PC, bin_to_int(PC));
-    printf("MAR %s - %d |||", MAR, bin_to_int(MAR));
-    printf("MBR %s - %d |||", MBR, bin_to_int(MBR));
-    printf("XR %s - %d |||", XR, bin_to_int(XR));
-    printf("AC %s - %d |||", AC, bin_to_int(AC));
+    printf("PC %s = %d |||", PC, bin_to_int(PC));
+    printf("MAR %s = %d |||", MAR, bin_to_int(MAR));
+    printf("MBR %s = %d |||", MBR, bin_to_int(MBR));
+    printf("XR %s = %d |||", XR, bin_to_int(XR));
+    printf("AC %s = %d |||", AC, bin_to_int(AC));
     printf("\n");
 }
 
