@@ -7,13 +7,13 @@ mod asm;
 mod capture;
 mod constants;
 mod types;
-
+mod binary;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let input_path = args.get(1).unwrap();
     let output_path = args.get(2).unwrap();
-    let mut var_map: HashMap<String, i32> = HashMap::new();
+    let mut var_map: HashMap<String, u16> = HashMap::new();
     println!("Reading assembly code from {input_path}...");
     let mut write_context = File::create(output_path.as_str()).unwrap();
     let file_content = read_from_file(input_path);

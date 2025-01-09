@@ -30,7 +30,7 @@ pub fn inc_command_len(command: &str) -> () {
         COMMAND_LENGTH.fetch_add(1, Ordering::SeqCst);
     }
 }
-pub fn commands_count(data: &Captured) -> usize {
+pub fn commands_count(data: &Captured) -> u16 {
     let mut size = 0;
     for capture in data {
         if COMMAND_MAP.get(&capture.command_name).is_some() || capture.command_name == "DATA" {

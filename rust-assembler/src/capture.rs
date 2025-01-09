@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::process::exit;
 use std::sync::atomic::Ordering;
-use regex::{Regex};
+use regex::{Error, Regex};
+use crate::binary::BinaryString;
 use crate::constants::{inc_command_len, COMMAND_LENGTH, ORG_ADDRESS};
 use crate::types::Captured;
 
@@ -18,99 +18,92 @@ pub struct LineParsed {
     pub address_mode: String,
     pub address_value: String,
 }
-pub fn verify_and_capture(
-    test_str: &String,
-    var_map: &mut HashMap<String, i32>,
-) -> LineParsed {
+
+pub fn parse_line(
+    line: &String,
+    variables: &mut HashMap<String, u16>,
+) -> Result<LineParsed, Error> {
     let command_regex = Regex::new(
         r"^([A-Z]+)?\s+(LOAD|STORE|CALL|BR|BREQ|BRGE|BRLT|ADD|SUB|MUL|DIV|ORG|END)\s+([=@$])?(([0-9]+)|([A-Z]+))\s*",
-    )
-        .unwrap();
+    )?;
 
-    let halt_regex = Regex::new(r"^([A-Z]+)?\s*(HALT)\s*$").unwrap();
-    let var_regex = Regex::new(r"([A-Z]+)\s+([0-9]+)").unwrap();
-    if command_regex.is_match(&test_str) {
-        let caps = command_regex.captures(&test_str).unwrap();
-        let _all = caps.get(0).map_or("", |m| m.as_str());
-        let variable = caps.get(1).map_or("", |m| m.as_str());
-        let command = caps.get(2).map_or("", |m| m.as_str());
-        let address_mode = caps.get(3).map_or("", |m| m.as_str());
-        let address = caps.get(4).map_or("", |m| m.as_str());
-        var_map.insert(variable.to_string(), COMMAND_LENGTH.load(Ordering::SeqCst) as i32);
-        // inc_command_len(command).expect("TODO: panic message");
-        LineParsed {
-            point: variable.to_string(),
-            command_name: command.to_string(),
-            address_mode: address_mode.to_string(),
-            address_value: address.to_string(),
-        }
-    } else if halt_regex.is_match(&test_str) {
-        let caps = halt_regex.captures(&test_str).unwrap();
-        let variable = caps.get(1).map_or("", |m| m.as_str());
-        let command = caps.get(2).map_or("", |m| m.as_str());
-        var_map.insert(variable.to_string(), COMMAND_LENGTH.load(Ordering::SeqCst) as i32);
-        // inc_command_len(command).expect("TODO: panic message");
-        LineParsed {
-            point: variable.to_string(),
-            command_name: command.to_string(),
-            address_mode: "".to_string(),
-            address_value: "".to_string(),
-        }
-    } else if var_regex.is_match(&test_str) {
-        let caps = var_regex.captures(&test_str).unwrap();
-        let var = caps.get(1).map_or("", |m| m.as_str());
-        let var_value = caps.get(2).map_or("", |m| m.as_str()).parse::<i32>().unwrap();
-        var_map.insert(var.to_string(), var_value);
-        LineParsed {
+    let halt_regex = Regex::new(r"^([A-Z]+)?\s*(HALT)\s*$")?;
+    let var_regex = Regex::new(r"([A-Z]+)\s+([0-9]+)")?;
+    if command_regex.is_match(&line) || halt_regex.is_match(&line) {
+        let captures = command_regex.captures(&line).unwrap_or_else(
+            || halt_regex.captures(&line).unwrap_or_else(|| panic!("Error capturing halt or command regex {line}"))
+        );
+        let point = extract_capture(&captures, 1);
+        let command_name = extract_capture(&captures, 2);
+        let address_mode = extract_capture(&captures, 3);
+        let address_value = extract_capture(&captures, 4);
+        variables.insert(point.clone(), COMMAND_LENGTH.load(Ordering::SeqCst));
+        Ok(LineParsed {
+            point,
+            command_name,
+            address_mode,
+            address_value
+        })
+    }
+    else if var_regex.is_match(&line) {
+        let captures = var_regex.captures(&line).unwrap_or_else(|| panic!("Error capturing var regex {line}"));
+        let point = extract_capture(&captures, 1);
+        let point_value = extract_capture(&captures, 2).parse::<u16>().unwrap_or_else(|e| panic!("Error parsing to uint var value {:?}", e));
+        variables.insert(point.clone(), point_value);
+        Ok(LineParsed {
             point: "0".to_string(),
-            command_name: var.to_string(),
+            command_name: point,
             address_mode: "".to_string(),
             address_value: "".to_string(),
-        }
+        })
     } else {
-        eprintln!("error verifying or capturing {test_str}");
-        exit(1);
+        Err(Error::Syntax(format!("Error capturing {line}")))
     }
 }
 
-pub fn capture_and_parse_data<'a>(data: &'a String, data_regex: &Regex, var_map: &mut HashMap<String, i32>) -> LineParsed {
-    let caps = data_regex.captures(&data).unwrap();
-    let parsed_var: Vec<&'a str> = caps.get(1).map_or("", |m| m.as_str()).split(",").collect();
-    let parsed_data_value: Vec<&'a str> = caps.get(2).map_or("", |m| m.as_str()).split(",").collect();
-    let binary_data: Vec<String> = parsed_data_value
+pub fn parsed_line_data(line: &String, data_regex: &Regex, var_map: &mut HashMap<String, u16>) -> Result<LineParsed, Error> {
+    let captures = data_regex.captures(&line).unwrap_or_else(|| panic!("Error capturing parse data {line}"));
+
+    let capture_value = extract_capture(&captures, 2);
+    let data_values: Vec<&str> = capture_value.split(",").collect();
+    let binary_data_values: Vec<String> = data_values
         .iter()
-        .map(|n| format!("{:0>16b}", n.parse::<u32>().unwrap()))
+        .map(|n| BinaryString::from_string_u16(n.to_string(), 16))
         .collect();
-    var_map.insert(parsed_var.join(""), COMMAND_LENGTH.load(Ordering::SeqCst) as i32);
-    // inc_command_len("DATA").unwrap();
-    // (binary_data.join(""), binary_data.len())
-    LineParsed {
-        point: parsed_var.join(""),
+
+    let point: String = extract_capture(&captures, 1).split(",").collect::<Vec<&str>>().join("");
+    var_map.insert(point.clone(), COMMAND_LENGTH.load(Ordering::SeqCst));
+    Ok(LineParsed {
+        point,
         command_name: "DATA".to_string(),
         address_mode: "".to_string(),
-        address_value: binary_data.join(""),
-    }
+        address_value: binary_data_values.join(""),
+    })
 }
-pub fn split_by_org(data: Captured, var_map: &mut HashMap<String, i32>) -> Vec<Captured> {
-    let mut result: Vec<Captured> = Vec::new();
-    let mut org_count = 0;
-    let mut temp_vec: Captured = Vec::new();
-    for capture in data {
-        if capture.command_name == "ORG" {
-            ORG_ADDRESS.store(capture.address_value.parse::<u16>().unwrap(), Ordering::SeqCst);
-            org_count += 1;
+pub fn split_by_org(commands: Captured, var_map: &mut HashMap<String, u16>) -> Vec<Captured> {
+    let mut split_command: Vec<Captured> = Vec::new();
+    let mut org_command_count = 0;
+    let mut org_command_vec: Captured = Vec::new();
+    for parsed_line in commands {
+        if parsed_line.command_name == "ORG" {
+            ORG_ADDRESS.store(parsed_line.address_value.parse::<u16>().unwrap_or_else(|e| panic!("Error parsing address_value {line} {:?}", e, line = line!())), Ordering::SeqCst, );
+            org_command_count += 1;
         }
-        if let Some(point_value) = var_map.get_mut(&capture.point) {
-            *point_value = (COMMAND_LENGTH.load(Ordering::SeqCst) + ORG_ADDRESS.load(Ordering::SeqCst)) as i32;
+        if let Some(point_value) = var_map.get_mut(&parsed_line.point) {
+            *point_value = COMMAND_LENGTH.load(Ordering::SeqCst) + ORG_ADDRESS.load(Ordering::SeqCst);
         }
-        if org_count > 1 && capture.command_name == "ORG" {
+        if org_command_count > 1 && parsed_line.command_name == "ORG" {
             COMMAND_LENGTH.store(0, Ordering::SeqCst);
-            result.push(temp_vec);
-            temp_vec = Vec::new();
+            split_command.push(org_command_vec);
+            org_command_vec = Vec::new();
         }
-        inc_command_len(&capture.command_name);
-        temp_vec.push(capture);
+        inc_command_len(&parsed_line.command_name);
+        org_command_vec.push(parsed_line);
     }
-    result.push(temp_vec);
-    result
+    split_command.push(org_command_vec);
+    split_command
+}
+
+fn extract_capture(caps: &regex::Captures, index: usize) -> String {
+    caps.get(index).map_or("", |m| m.as_str()).to_string()
 }
