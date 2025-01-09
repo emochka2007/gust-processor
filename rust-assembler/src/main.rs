@@ -12,10 +12,11 @@ mod binary;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let input_path = args.get(1).unwrap();
-    let output_path = args.get(2).unwrap();
+    let binding = String::from("../emulator.obj");
+    let output_path = args.get(2).unwrap_or(&binding);
     let mut var_map: HashMap<String, u16> = HashMap::new();
-    println!("Reading assembly code from {input_path}...");
-    let mut write_context = File::create(output_path.as_str()).unwrap();
+    println!("Reading assembly code from {input_path}.asm ...");
+    let mut write_context = File::create(format!("../{output_path}.obj")).unwrap();
     let file_content = read_from_file(input_path);
     let command_array = create_command_array(file_content, &mut var_map);
     let bin = command_array_to_bin(command_array);
@@ -26,7 +27,7 @@ fn main() {
 
 
 fn read_from_file(path: &str) -> Vec<String> {
-    let result = File::open(path);
+    let result = File::open(format!("../asm/{path}.asm"));
     let reader = io::BufReader::new(result.unwrap());
     let mut lines = Vec::new();
     for line in reader.lines() {
