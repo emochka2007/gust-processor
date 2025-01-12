@@ -196,6 +196,7 @@ void sub_complement(char from[], char to[], char from_res[]) {
     twos_complement(to, res_complement);
     sum_two_bin(from, res_complement, from_res);
 }
+
 int is_zero(char value[]) {
     for (unsigned long i = 0; i < strlen(value); i++) {
         if (value[i] != '0') {
@@ -208,4 +209,3 @@ int is_zero(char value[]) {
 int is_negative(char value[]) {
     return value[0] == '1';
 }
-

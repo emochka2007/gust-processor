@@ -38,9 +38,9 @@ pub fn make_assembly_inst(command: String, mode: String, address: String) -> Str
     assembly_str
 }
 pub fn command_array_to_bin(data: Vec<Captured>) -> String {
-    let instructions = process_org_split(data);
-    let mut full_inst = instructions.0.join("");
-    full_inst = format!("{}{}", instructions.1, full_inst);
+    let (instructions, end_value) = process_org_split(data);
+    let mut full_inst = instructions.join("");
+    full_inst = format!("{}{}", end_value, full_inst);
     full_inst
 }
 
@@ -95,6 +95,8 @@ pub fn create_command_array(file_content: Vec<String>, map: &mut HashMap<String,
     split_vec
 }
 fn replace_vars(command_vec: &mut Captured, var_map: &HashMap<String, u16>) -> Result<(), String>  {
+    println!("{:?}", command_vec);
+    println!("{:?}", var_map);
     for command in command_vec.iter_mut() {
         if command.point == "0" {
             // if it's not a command - we get a value from var_map

@@ -13,7 +13,10 @@ void fill_with_zeros(char *bin, unsigned long len) {
 }
 
 void copy_str(char from[], char to[]) {
-    assert(strlen(from) == strlen(to));
+    if (strlen(from) != strlen(to)) {
+        printf("Reason: Diff Length. Error copy from %s to %s", from, to);
+        exit(1);
+    }
     for (unsigned long i = 0; i < strlen(from); i++) {
         to[i] = from[i];
     }

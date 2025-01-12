@@ -28,6 +28,8 @@ pub static MODE_MAP: phf::Map<&'static str, &str> = phf_map! {
 pub fn inc_command_len(command: &str) -> () {
     if let Some(_) = COMMAND_MAP.get(&command) {
         COMMAND_LENGTH.fetch_add(1, Ordering::SeqCst);
+    } else if command == "DATA" {
+        COMMAND_LENGTH.fetch_add(1, Ordering::SeqCst);
     }
 }
 pub fn commands_count(data: &Captured) -> u16 {

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include<unistd.h>
+#include <unistd.h>
 
 #include "../include/helper.h"
 #include "../include/math.h"
@@ -50,7 +50,6 @@ char *BIN_COMMANDS_STR[COMMANDS_COUNT] = {
     "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011"
 };
 
-
 // Is HALT command executed, to stop the loop
 unsigned int is_halt = 0;
 // MAX iteration to prevent infinite loop
@@ -96,13 +95,19 @@ void get_instruction_from_memory(char bin_index[ADDRESS_LENGTH], char instructio
 void match_address_mode(char mode[ADDRESS_MODE_LENGTH]) {
     store_address(MAR);
     if (strcmp(mode, DIRECT_MODE) == 0) {
-        //do nothing
+        // do nothing
     } else if (strcmp(mode, IMMEDIATE_MODE) == 0) {
         copy_diff_len_str(MAR, MBR, 16 - 10);
     } else if (strcmp(mode, INDEXED_MODE) == 0) {
         sum_two_bin(MAR, MBR, MAR);
+    } else if (strcmp(mode, INDIRECT_MODE) == 0) {
+        // printf("MBR %s \n", MBR);
+        // printf("MAR %s \n", MAR);
+        unsigned int index = bin_to_int(MAR);
+        copy_str(memory[index], MBR);
+        copy_from_long_to_short(MBR, MAR);
     } else {
-        fprintf(stderr, "Mode not found\n");
+        fprintf(stderr, "Mode not found %s\n", mode);
         exit(EXIT_FAILURE);
     }
 }
@@ -138,11 +143,6 @@ void match_command(char command[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH])
             get_instruction_from_memory(MAR, MBR);
         }
     } else if (strcmp(command, STORE) == 0) {
-        // Direct mode of addressing
-        //    MAR <- IR<address field>
-        // Immediate mode of addressing
-        //    MAR <- IR<address field>
-        //    MBR <- MAR
         copy_str(AC, MBR); //  MBR <- AC
         const int index = bin_to_int(MAR);
         if (index == 1) {
@@ -163,11 +163,16 @@ void match_command(char command[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH])
         if (is_negative(AC)) {
             copy_str(MAR, PC);
         }
+    } else if (strcmp(command, CALL) == 0) {
+        copy_diff_len_str(PC, MBR, INSTRUCTION_LENGTH - ADDRESS_LENGTH);
+        const unsigned int index = bin_to_int(MAR);
+        copy_str(MBR, memory[index]);
+        copy_str(MAR, PC);
+        increment_bin(PC);
     } else if (strcmp(command, HALT) == 0) {
         is_halt = 1;
     }
 }
-
 
 /**
  * Iteration loop that waits until HALT command is executed or MAX_ITER is overflowed
@@ -180,6 +185,8 @@ void instruction_cycle(void) {
     while (!is_halt && MAX_ITER > 0) {
         // Read the next instruction into the IR
         get_instruction_from_memory(PC, IR);
+        // Increment PC mb switch to increment
+        sum_two_bin(PC, "0000000001", PC);
         // exec mode logic
         char mode[ADDRESS_MODE_LENGTH] = "00";
         store_address_mode(mode);
@@ -189,8 +196,6 @@ void instruction_cycle(void) {
         store_command(operation);
         match_command(operation, mode);
         print_each_register();
-        // Increment PC
-        sum_two_bin(PC, "0000000001", PC);
         // getchar();
         // sleep(1);
         MAX_ITER--;

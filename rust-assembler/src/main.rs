@@ -12,13 +12,14 @@ mod binary;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let input_path = args.get(1).unwrap();
-    let binding = String::from("../emulator.obj");
+    let binding = String::from("emulator");
     let output_path = args.get(2).unwrap_or(&binding);
     let mut var_map: HashMap<String, u16> = HashMap::new();
     println!("Reading assembly code from {input_path}.asm ...");
     let mut write_context = File::create(format!("../{output_path}.obj")).unwrap();
     let file_content = read_from_file(input_path);
     let command_array = create_command_array(file_content, &mut var_map);
+    // println!("{:?}", command_array);
     let bin = command_array_to_bin(command_array);
     write_context
         .write_all(bin.as_bytes())

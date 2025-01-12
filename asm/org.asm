@@ -1,15 +1,11 @@
-ORG 0
-LOAD 5
-SUB =5
-ORG 5
-DATA 10
-ORG 7
-DATA 15
-ORG 8
-DATA 19
-END 0
-
-
-START 100
-DONE 114
-N 115
+    ORG 0
+SQ  DATA 0
+    LOAD X
+    MUL X
+    STORE X
+    BR  @SQ
+X   DATA 3
+    ORG 10
+    CALL SQ
+    HALT
+    END 10

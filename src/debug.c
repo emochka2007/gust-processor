@@ -44,8 +44,8 @@ void print_each_register(void) {
     // printf("MBR %s\n", MBR);
     // printf("XR %s\n", XR);
     // printf("AC %s\n", AC);
-    // print_memory(0, 1);
-    print_memory(100, 107);
+    print_memory(0, 5);
+    // print_memory(0, 22);
     // print_memory(110, 115);
     print_instruction();
     printf("IR %s|||", IR);
