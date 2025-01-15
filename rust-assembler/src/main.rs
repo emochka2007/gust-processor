@@ -1,7 +1,7 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
-use std::{collections::HashMap};
+use std::collections::HashMap;
 use crate::asm::{command_array_to_bin, create_command_array};
 mod asm;
 mod capture;
@@ -19,7 +19,7 @@ fn main() {
     let mut write_context = File::create(format!("../{output_path}.obj")).unwrap();
     let file_content = read_from_file(input_path);
     let command_array = create_command_array(file_content, &mut var_map);
-    // println!("{:?}", command_array);
+
     let bin = command_array_to_bin(command_array);
     write_context
         .write_all(bin.as_bytes())

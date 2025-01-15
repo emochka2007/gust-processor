@@ -16,9 +16,10 @@ LOOP    STORE   1
         ADD     =1
         BRLT    LOOP
 DONE    HALT
+        ORG     100
 LSTFIB  DATA    1
 FIB     DATA    1
 TEMP    DATA    1
 I       DATA    1
-N       DATA    5
+N       DATA    6
         END     START

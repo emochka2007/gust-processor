@@ -43,4 +43,4 @@ char *BIN_COMMANDS_STR[COMMANDS_COUNT];
 #endif
 void instruction_cycle(void);
 
-void get_bits_from_instruction(int start, int end, char result[]);
+void get_bits_from_instruction(int start, int end, char result[], const char source[]);

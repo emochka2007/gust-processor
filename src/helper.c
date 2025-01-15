@@ -23,6 +23,7 @@ void copy_str(char from[], char to[]) {
 }
 
 int index_of(char *arr[], int arr_len, char *elem) {
+    // printf("arr %s")
     for (int i = 0; i < arr_len; i++) {
         if (strcmp(arr[i], elem) == 0) {
             return i;
@@ -32,11 +33,11 @@ int index_of(char *arr[], int arr_len, char *elem) {
 }
 
 void store_command(char to[COMMAND_LENGTH]) {
-    get_bits_from_instruction(0, 3, to);
+    get_bits_from_instruction(0, 3, to, IR);
 }
 
 void store_address_mode(char to[ADDRESS_MODE_LENGTH]) {
-    get_bits_from_instruction(4, 5, to);
+    get_bits_from_instruction(4, 5, to, IR);
 }
 
 /**
@@ -45,7 +46,7 @@ void store_address_mode(char to[ADDRESS_MODE_LENGTH]) {
  * We store from 6th to 15th byte
  */
 void store_address(char to[ADDRESS_LENGTH]) {
-    get_bits_from_instruction(6, 15, to);
+    get_bits_from_instruction(6, 15, to, IR);
 }
 
 void copy_diff_len_str(char from[], char to[], unsigned long diff) {

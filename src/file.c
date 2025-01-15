@@ -5,6 +5,7 @@
 #include "../include/helper.h"
 #include "../include/memory.h"
 #include "../include/math.h"
+#include "../include/debug.h"
 
 FILE *read_file(const char *path) {
     FILE *file = fopen(path, "r");
@@ -25,7 +26,8 @@ void read_from_file_and_store(FILE *file, unsigned int size, char *res) {
         index++;
     }
     res[size] = '\0';
-    printf("res - %s\n", res);
+    print_decoded(res, size);
+    // printf("res - %s\n", res);
 }
 
 void read_from_file_and_store_into_memory() {
@@ -38,7 +40,6 @@ void read_from_file_and_store_into_memory() {
     copy_str(end_address, PC);
     while (feof(file) == 0) {
         char org_address[ADDRESS_LENGTH];
-        // END - ORG - COUNT - INST[] - ORG - COUNT - INST[]
         fill_with_zeros(org_address, ADDRESS_LENGTH - 1);
         read_from_file_and_store(file, ADDRESS_LENGTH - 1, org_address);
 
@@ -52,8 +53,8 @@ void read_from_file_and_store_into_memory() {
         }
         char res[INSTRUCTION_LENGTH];
         fill_with_zeros(res, INSTRUCTION_LENGTH - 1);
-        printf("org_address - %d\n", bin_to_int(org_address));
-        printf("command length - %d\n", bin_to_int(commands_length));
+        // printf("org_address - %d\n", bin_to_int(org_address));
+        // printf("command length - %d\n", bin_to_int(commands_length));
         for (int i = org_index; i < org_index + command_index; i++) {
             read_from_file_and_store(file, INSTRUCTION_LENGTH - 1, res);
             copy_str(res, memory[i]);

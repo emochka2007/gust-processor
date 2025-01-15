@@ -60,10 +60,11 @@ unsigned int MAX_ITER = 10000;
  * @param start index of starting byte
  * @param end index of end byte
  * @param result var we store to from IR register
+ * @param source var we store from
  */
-void get_bits_from_instruction(const int start, const int end, char result[]) {
+void get_bits_from_instruction(const int start, const int end, char result[], const char source[]) {
     for (int i = start, j = 0; i <= end; i++, j++) {
-        result[j] = IR[i];
+        result[j] = source[i];
     }
 }
 
@@ -76,7 +77,7 @@ void get_instruction_from_memory(char bin_index[ADDRESS_LENGTH], char instructio
     const int index = bin_to_int(bin_index);
     if (index >= MEMORY_LENGTH) {
         fprintf(stderr, "Index out of range\n");
-        abort();
+        exit(1);
     }
     for (int i = 0; i < INSTRUCTION_LENGTH - 1; i++) {
         instruction[i] = memory[index][i];
@@ -101,8 +102,6 @@ void match_address_mode(char mode[ADDRESS_MODE_LENGTH]) {
     } else if (strcmp(mode, INDEXED_MODE) == 0) {
         sum_two_bin(MAR, MBR, MAR);
     } else if (strcmp(mode, INDIRECT_MODE) == 0) {
-        // printf("MBR %s \n", MBR);
-        // printf("MAR %s \n", MAR);
         unsigned int index = bin_to_int(MAR);
         copy_str(memory[index], MBR);
         copy_from_long_to_short(MBR, MAR);
@@ -146,6 +145,7 @@ void match_command(char command[COMMAND_LENGTH], char mode[ADDRESS_MODE_LENGTH])
         copy_str(AC, MBR); //  MBR <- AC
         const int index = bin_to_int(MAR);
         if (index == 1) {
+            printf("Copying from AC to XR, as index == 1\n");
             copy_from_long_to_short(AC, XR);
         }
         copy_str(MBR, memory[index]);
@@ -186,6 +186,7 @@ void instruction_cycle(void) {
         // Read the next instruction into the IR
         get_instruction_from_memory(PC, IR);
         // Increment PC mb switch to increment
+        print_decoded(IR, INSTRUCTION_LENGTH - 1);
         sum_two_bin(PC, "0000000001", PC);
         // exec mode logic
         char mode[ADDRESS_MODE_LENGTH] = "00";
@@ -195,7 +196,6 @@ void instruction_cycle(void) {
         char operation[COMMAND_LENGTH] = "0000";
         store_command(operation);
         match_command(operation, mode);
-        print_each_register();
         // getchar();
         // sleep(1);
         MAX_ITER--;

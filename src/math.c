@@ -70,6 +70,7 @@ void int_to_bin(const int num, const int len, char res[]) {
 unsigned int bin_to_uint(char bin[]) {
     const unsigned long bin_len = strlen(bin);
     unsigned int res = 0;
+    // printf("73 PC - %s\n", PC);
     // 2 ^ 0 + 2 ^ 1 * 1 + 2 ^ 2 * 0 + 2 ^ 3 * 1
     int power = 0;
     for (unsigned long i = bin_len - 1; i >= 1; i--) {
@@ -77,6 +78,7 @@ unsigned int bin_to_uint(char bin[]) {
         res += to_power(2, power) * bin_int;
         power++;
     }
+    // printf("81 PC - %s\n", PC);
     return res;
 }
 

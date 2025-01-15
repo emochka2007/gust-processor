@@ -95,8 +95,8 @@ pub fn create_command_array(file_content: Vec<String>, map: &mut HashMap<String,
     split_vec
 }
 fn replace_vars(command_vec: &mut Captured, var_map: &HashMap<String, u16>) -> Result<(), String>  {
-    println!("{:?}", command_vec);
-    println!("{:?}", var_map);
+    // println!("{:?}", command_vec);
+    // println!("{:?}", var_map);
     for command in command_vec.iter_mut() {
         if command.point == "0" {
             // if it's not a command - we get a value from var_map
