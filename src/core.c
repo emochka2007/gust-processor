@@ -186,7 +186,7 @@ void instruction_cycle(void) {
         // Read the next instruction into the IR
         get_instruction_from_memory(PC, IR);
         // Increment PC mb switch to increment
-        print_decoded(IR, INSTRUCTION_LENGTH - 1);
+        print_decoded(IR, INSTRUCTION_LENGTH - 1, 1);
         sum_two_bin(PC, "0000000001", PC);
         // exec mode logic
         char mode[ADDRESS_MODE_LENGTH] = "00";
@@ -196,6 +196,7 @@ void instruction_cycle(void) {
         char operation[COMMAND_LENGTH] = "0000";
         store_command(operation);
         match_command(operation, mode);
+        print_each_register();
         // getchar();
         // sleep(1);
         MAX_ITER--;

@@ -75,9 +75,10 @@ pub fn create_command_array(file_content: Vec<String>, map: &mut HashMap<String,
     for line in file_content {
         match data_regex.is_match(&line) {
             true => {
-                //TODO: fix data with comma
                 let line_parsed = parsed_line_data(&line, &data_regex, map).unwrap_or_else(|e| panic!("Error parsed_line_data {:?}", e));
-                command_vec.push(line_parsed);
+                for line in line_parsed {
+                    command_vec.push(line);
+                }
             }
             _ => {
                 let line_parsed =

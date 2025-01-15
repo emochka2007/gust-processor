@@ -7,9 +7,9 @@
 
 
 // todo make it read from IR
-void print_decoded(char *bin, unsigned int size) {
+void print_decoded(char *bin, unsigned int size, int is_ir) {
     printf("BIN %s, ", bin);
-    if (size == INSTRUCTION_LENGTH - 1) {
+    if (size == INSTRUCTION_LENGTH - 1 || is_ir == 1) {
         char command[COMMAND_LENGTH];
         char mode[ADDRESS_MODE_LENGTH];
         char address[ADDRESS_LENGTH];
@@ -37,6 +37,9 @@ void print_decoded(char *bin, unsigned int size) {
         if (strcmp(command_mnemo, "HALT") == 0) {
             if (bin_to_int(bin) == 0) {
                 printf("HALT\n");
+            } else if (is_ir == 1) {
+                printf("Size: %d, COMMAND:%s, MODE: %s, VALUE: %d (reading from IR)\n", size, command_mnemo, mode_mnemo,
+                       value);
             } else {
                 printf("DATA: %d\n", bin_to_int(bin));
             }
@@ -55,7 +58,7 @@ void print_memory(const int from, const int to) {
 }
 
 void print_each_register(void) {
-    print_memory(100, 104);
+    print_memory(0, 5);
     printf("IR %s|||", IR);
     printf("PC %s = %d |||", PC, bin_to_int(PC));
     // printf("MAR %s = %d |||", MAR, bin_to_int(MAR));

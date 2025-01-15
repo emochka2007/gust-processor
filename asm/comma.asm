@@ -1,0 +1,8 @@
+    ORG 0
+    DATA 1,2,3,4,5
+START LOAD =1
+    STORE 1
+    STORE 2
+    STORE 3
+    HALT
+    END START

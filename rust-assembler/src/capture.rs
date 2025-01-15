@@ -61,10 +61,11 @@ pub fn parse_line(
     }
 }
 
-pub fn parsed_line_data(line: &String, data_regex: &Regex, var_map: &mut HashMap<String, u16>) -> Result<LineParsed, Error> {
+pub fn parsed_line_data(line: &String, data_regex: &Regex, var_map: &mut HashMap<String, u16>) -> Result<Vec<LineParsed>, Error> {
     let captures = data_regex.captures(&line).unwrap_or_else(|| panic!("Error capturing parse data {line}"));
-
+    let mut parsed_lines: Vec<LineParsed> = Vec::new();
     let capture_value = extract_capture(&captures, 2);
+    println!("{capture_value}");
     let data_values: Vec<&str> = capture_value.split(",").collect();
     let binary_data_values: Vec<String> = data_values
         .iter()
@@ -73,12 +74,15 @@ pub fn parsed_line_data(line: &String, data_regex: &Regex, var_map: &mut HashMap
 
     let point: String = extract_capture(&captures, 1).split(",").collect::<Vec<&str>>().join("");
     var_map.insert(point.clone(), COMMAND_LENGTH.load(Ordering::SeqCst));
-    Ok(LineParsed {
-        point,
-        command_name: "DATA".to_string(),
-        address_mode: "".to_string(),
-        address_value: binary_data_values.join(""),
-    })
+    for bin_data_value in binary_data_values {
+        parsed_lines.push(LineParsed {
+            point: point.clone(),
+            command_name: "DATA".to_string(),
+            address_mode: "".to_string(),
+            address_value: bin_data_value
+        })
+    }
+    Ok(parsed_lines)
 }
 pub fn split_by_org(commands: Captured, var_map: &mut HashMap<String, u16>) -> Vec<Captured> {
     let mut split_command: Vec<Captured> = Vec::new();
